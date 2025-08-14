@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Corporate Abbreviation Finder</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: linear-gradient(to bottom right, #f8c8dc, #e6e6fa);
+    }
+    nav {
+        background: #f8c8dc;
+        padding: 10px;
+        text-align: center;
+    }
+    nav button {
+        background: #e6e6fa;
+        border: none;
+        padding: 10px 15px;
+        margin: 5px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    nav button:hover {
+        background: #d8bfd8;
+    }
+    .page {
+        display: none;
+        padding: 20px;
+    }
+
+    /* Centered search page */
+    #searchPage {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 60px); /* leave space for navbar */
+        background: linear-gradient(to bottom right, #f8c8dc, #e6e6fa);
+    }
+    .search-container {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        width: 400px;
+        max-width: 90%;
+        text-align: center;
+    }
+    .search-container input {
+        width: 100%;
+        padding: 12px;
+        margin: 15px 0;
+        font-size: 16px;
+        border: 2px solid #f8c8dc;
+        border-radius: 8px;
+    }
+    .search-container button {
+        padding: 10px 20px;
+        background: #e6e6fa;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .search-container button:hover {
+        background: #d8bfd8;
+    }
+    .result {
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    tr:hover {
+        background-color: #f8c8dc;
+    }
+    button.delete {
+        background-color: #ff6961;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    button.delete:hover {
+        background-color: #ff5c5c;
+    }
+</style>
+</head>
+<body>
+
+<nav>
+    <button onclick="showPage('searchPage')">Search</button>
+    <button onclick="showPage('managePage')">Manage</button>
+    <button onclick="showPage('listPage')">List</button>
+</nav>
+
+<!-- Search Page -->
+<div id="searchPage" class="page">
+    <div class="search-container">
+        <h2>Search Abbreviation</h2>
+        <input type="text" id="searchTerm" placeholder="Enter abbreviation (e.g., ASAP)">
+        <button onclick="findMeaning()">Find Meaning</button>
+        <div class="result" id="result"></div>
+    </div>
+</div>
+
+<!-- Manage Page -->
+<div id="managePage" class="page">
+    <h2>Manage Abbreviations</h2>
+    <input type="text" id="abbr" placeholder="Abbreviation">
+    <input type="text" id="meaning" placeholder="Meaning">
+    <button onclick="addAbbreviation()">Add / Update</button>
+    <table id="manageTable">
+        <tr>
+            <th>Abbreviation</th>
+            <th>Meaning</th>
+            <th>Action</th>
+        </tr>
+    </table>
+</div>
+
+<!-- List Page -->
+<div id="listPage" class="page">
+    <h2>All Abbreviations</h2>
+    <table id="listTable">
+        <tr>
+            <th>Abbreviation</th>
+            <th>Meaning</th>
+            <th>Action</th>
+        </tr>
+    </table>
+</div>
+
+<script>
+let abbreviations = {
+    "MOM": "Minutes of Meeting",
+    "ASAP": "As Soon As Possible",
+    "FYI": "For Your Information",
+    "EOD": "End Of Day",
+    "KPI": "Key Performance Indicator",
+    "ETA": "Estimated Time of Arrival",
+    "OOO": "Out of Office",
+    "PFA": "Please Find Attached",
+    "RFP": "Request For Proposal",
+    "RFI": "Request For Information",
+    "RFQ": "Request For Quotation",
+    "B2B": "Business to Business",
+    "B2C": "Business to Consumer",
+    "CEO": "Chief Executive Officer",
+    "CFO": "Chief Financial Officer",
+    "COO": "Chief Operating Officer",
+    "CTO": "Chief Technology Officer",
+    "CIO": "Chief Information Officer",
+    "HR": "Human Resources",
+    "IT": "Information Technology",
+    "QA": "Quality Assurance",
+    "QC": "Quality Control",
+    "POC": "Point of Contact",
+    "SLA": "Service Level Agreement",
+    "TAT": "Turnaround Time",
+    "ROI": "Return on Investment",
+    "PTO": "Paid Time Off",
+    "OKR": "Objectives and Key Results",
+    "PR": "Public Relations",
+    "R&R": "Roles and Responsibilities",
+    "NRN": "No Reply Necessary",
+    "WFH": "Work From Home",
+    "WFO": "Work From Office",
+    "JD": "Job Description",
+    "NDA": "Non-Disclosure Agreement",
+    "KRA": "Key Result Area",
+    "CSR": "Corporate Social Responsibility",
+    "L&D": "Learning and Development",
+    "YTD": "Year To Date",
+    "FTE": "Full-Time Equivalent",
+    "PIP": "Performance Improvement Plan",
+    "PD": "Professional Development",
+    "USP": "Unique Selling Proposition",
+    "VC": "Venture Capital",
+    "MVP": "Minimum Viable Product",
+    "SOP": "Standard Operating Procedure",
+    "LOB": "Line of Business",
+    "FMCG": "Fast-Moving Consumer Goods",
+    "BOM": "Bill of Materials",
+    "MRP": "Maximum Retail Price",
+    "SKU": "Stock Keeping Unit",
+    "ERP": "Enterprise Resource Planning",
+    "CRM": "Customer Relationship Management",
+    "DBMS": "Database Management System",
+    "SaaS": "Software as a Service",
+    "PaaS": "Platform as a Service",
+    "IaaS": "Infrastructure as a Service",
+    "IoT": "Internet of Things",
+    "AI": "Artificial Intelligence",
+    "ML": "Machine Learning",
+    "BI": "Business Intelligence",
+    "RPA": "Robotic Process Automation",
+    "BYOD": "Bring Your Own Device",
+    "VPN": "Virtual Private Network",
+    "IP": "Intellectual Property",
+    "GDPR": "General Data Protection Regulation",
+    "DNS": "Domain Name System",
+    "UI": "User Interface",
+    "UX": "User Experience",
+    "SDLC": "Software Development Life Cycle",
+    "Agile": "Iterative Project Management Approach",
+    "Scrum": "Agile Framework for Teams",
+    "DevOps": "Development and Operations Collaboration",
+    "CI": "Continuous Integration",
+    "CD": "Continuous Delivery",
+    "MOU": "Memorandum of Understanding",
+    "RCA": "Root Cause Analysis",
+    "BRD": "Business Requirements Document",
+    "FRD": "Functional Requirements Document",
+    "TBD": "To Be Decided",
+    "TBA": "To Be Announced",
+    "TBC": "To Be Confirmed",
+    "ETA": "Estimated Time of Arrival",
+    "FY": "Fiscal Year",
+    "PT": "Part-Time",
+    "FT": "Full-Time",
+    "BOM": "Bill of Materials",
+    "CRM": "Customer Relationship Management",
+    "EOM": "End of Message",
+    "IMO": "In My Opinion",
+    "IMHO": "In My Humble Opinion",
+    "TL;DR": "Too Long; Didn't Read",
+    "NPS": "Net Promoter Score",
+    "RTO": "Return to Office",
+    "CTA": "Call To Action",
+    "CTR": "Click Through Rate",
+    "SEO": "Search Engine Optimization",
+    "SEM": "Search Engine Marketing",
+    "SMM": "Social Media Marketing",
+    "PPC": "Pay Per Click",
+    "KOL": "Key Opinion Leader",
+    "BR": "Business Review"
+};
+
+
+if(localStorage.getItem('abbrData')) {
+    abbreviations = JSON.parse(localStorage.getItem('abbrData'));
+}
+
+function saveData() {
+    localStorage.setItem('abbrData', JSON.stringify(abbreviations));
+}
+
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
+    document.getElementById(pageId).style.display = 'block';
+    if(pageId === 'managePage') renderManageTable();
+    if(pageId === 'listPage') renderListTable();
+}
+
+function findMeaning() {
+    const term = document.getElementById('searchTerm').value.trim().toUpperCase();
+    const resultDiv = document.getElementById('result');
+    if(abbreviations[term]) {
+        resultDiv.innerText = `${term}: ${abbreviations[term]}`;
+    } else {
+        resultDiv.innerText = "Not found.";
+    }
+}
+
+function addAbbreviation() {
+    const abbr = document.getElementById('abbr').value.trim().toUpperCase();
+    const meaning = document.getElementById('meaning').value.trim();
+    if(abbr && meaning) {
+        abbreviations[abbr] = meaning;
+        saveData();
+        renderManageTable();
+        document.getElementById('abbr').value = '';
+        document.getElementById('meaning').value = '';
+    }
+}
+
+function deleteAbbreviation(key) {
+    delete abbreviations[key];
+    saveData();
+    renderManageTable();
+    renderListTable();
+}
+
+function renderManageTable() {
+    const table = document.getElementById('manageTable');
+    table.innerHTML = `<tr>
+        <th>Abbreviation</th>
+        <th>Meaning</th>
+        <th>Action</th>
+    </tr>`;
+    for(const key in abbreviations) {
+        table.innerHTML += `<tr>
+            <td>${key}</td>
+            <td>${abbreviations[key]}</td>
+            <td><button class="delete" onclick="deleteAbbreviation('${key}')">Delete</button></td>
+        </tr>`;
+    }
+}
+
+function renderListTable() {
+    const table = document.getElementById('listTable');
+    table.innerHTML = `<tr>
+        <th>Abbreviation</th>
+        <th>Meaning</th>
+        <th>Action</th>
+    </tr>`;
+    for(const key in abbreviations) {
+        table.innerHTML += `<tr>
+            <td>${key}</td>
+            <td>${abbreviations[key]}</td>
+            <td><button class="delete" onclick="deleteAbbreviation('${key}')">Delete</button></td>
+        </tr>`;
+    }
+}
+
+showPage('searchPage');
+</script>
+</body>
+</html>
